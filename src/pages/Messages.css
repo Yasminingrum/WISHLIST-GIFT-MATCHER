@@ -1,0 +1,112 @@
+/* Messages page reuses styles from Profile.css for message cards */
+/* These are the shared styles, scoped here for the standalone page */
+
+.messages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 700px;
+  padding-bottom: 48px;
+}
+
+.message-card {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.msg-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 4px;
+}
+
+.msg-avatar {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--rose-pale), var(--rose-light));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: var(--rose);
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.msg-meta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.msg-email {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+.msg-wishlist {
+  font-size: 0.8rem;
+  color: var(--rose);
+  font-style: italic;
+}
+
+.msg-time {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+.msg-content {
+  font-style: italic;
+  color: var(--ink-mid);
+  font-size: 0.95rem;
+  padding-left: 54px;
+  line-height: 1.6;
+}
+
+.msg-reply-box {
+  margin-top: 4px;
+  margin-left: 54px;
+  padding: 12px 16px;
+  background: var(--rose-pale);
+  border-radius: var(--r-sm);
+  border-left: 3px solid var(--rose);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.msg-reply-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--rose);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.msg-reply-content {
+  font-size: 0.92rem;
+  color: var(--ink-mid);
+  line-height: 1.5;
+}
+
+.msg-reply-form {
+  margin-top: 6px;
+  margin-left: 54px;
+  display: flex;
+  flex-direction: column;
+}
+
+.msg-reply-form textarea {
+  font-size: 0.9rem;
+  min-height: 70px;
+}
+
+@media (max-width: 600px) {
+  .msg-content { padding-left: 0; }
+  .msg-reply-box { margin-left: 0; }
+  .msg-reply-form { margin-left: 0; }
+}

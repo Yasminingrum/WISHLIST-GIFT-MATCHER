@@ -44,7 +44,7 @@ npm run build
 firebase deploy
 ```
 
-Website akan live di: `https://[nama-project].web.app`
+Website akan live di: `https://wishlist-gift-matcher.web.app`
 
 ## 🔄 CI/CD dengan GitHub Actions
 Push ke GitHub → GitHub Actions otomatis menjalankan `firebase deploy`

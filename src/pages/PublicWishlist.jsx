@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { getWishlist, listenItems, claimItem, createMessage, listenMessages } from "../utils/db";
+import { sendClaimNotifToOwner, sendClaimConfirmToClaimer } from "../utils/emailService";
 import "./PublicWishlist.css";
 
 const PRIORITY_LABEL = { high: "🔴 Tinggi", medium: "🟡 Sedang", low: "🟢 Rendah" };
@@ -9,8 +10,8 @@ const PRIORITY_CLASS = { high: "badge-rose", medium: "badge-gold", low: "badge-m
 export default function PublicWishlist() {
   const { id } = useParams();
   const [wishlist, setWishlist] = useState(null);
+  const [ownerProfile, setOwnerProfile] = useState(null);
   const [items, setItems] = useState([]);
-  const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
@@ -30,17 +31,28 @@ export default function PublicWishlist() {
   const [msgSuccess, setMsgSuccess] = useState("");
 
   useEffect(() => {
-    getWishlist(id).then((wl) => {
+    async function init() {
+      const wl = await getWishlist(id);
       if (!wl || !wl.isPublic) {
         setNotFound(true);
         setLoading(false);
         return;
       }
       setWishlist(wl);
+
+      // Ambil profil owner untuk dapat email-nya
+      try {
+        const { getUserProfile } = await import("../utils/db");
+        const profile = await getUserProfile(wl.ownerId);
+        setOwnerProfile(profile);
+      } catch (_) {}
+
       setLoading(false);
-    });
+    }
+    init();
+
     const unsubItems = listenItems(id, setItems);
-    const unsubMsgs = listenMessages(id, setMessages);
+    const unsubMsgs = listenMessages(id, () => {}); // keep listener aktif
     return () => { unsubItems(); unsubMsgs(); };
   }, [id]);
 
@@ -52,7 +64,27 @@ export default function PublicWishlist() {
     setClaimError("");
     try {
       await claimItem(claimTarget.id, claimerName.trim(), claimerEmail.trim());
-      setClaimSuccess(`Kamu berhasil mengklaim "${claimTarget.name}"! 🎉`);
+
+      // Kirim email notifikasi (tidak blocking — berjalan di background)
+      const ownerEmail = ownerProfile?.email || "";
+      const ownerName = ownerProfile?.displayName || "Pemilik Wishlist";
+
+      sendClaimNotifToOwner({
+        ownerEmail,
+        ownerName,
+        claimerName: claimerName.trim(),
+        itemName: claimTarget.name,
+        wishlistTitle: wishlist.title,
+      });
+
+      sendClaimConfirmToClaimer({
+        claimerEmail: claimerEmail.trim(),
+        claimerName: claimerName.trim(),
+        itemName: claimTarget.name,
+        wishlistTitle: wishlist.title,
+      });
+
+      setClaimSuccess(`Kamu berhasil mengklaim "${claimTarget.name}"! 🎉 Cek emailmu untuk konfirmasi.`);
       setClaimTarget(null);
       setClaimerName("");
       setClaimerEmail("");
@@ -94,7 +126,6 @@ export default function PublicWishlist() {
 
   return (
     <div className="public-page">
-      {/* Hero */}
       <div className="public-hero">
         <div className="public-hero-deco" aria-hidden />
         <div className="container">
@@ -126,7 +157,6 @@ export default function PublicWishlist() {
           <div className="alert alert-success" style={{ marginTop: 24 }}>{claimSuccess}</div>
         )}
 
-        {/* Items */}
         <section className="pub-section">
           <h2 className="pub-section-title">🎁 Daftar Hadiah</h2>
           {items.length === 0 ? (
@@ -168,7 +198,6 @@ export default function PublicWishlist() {
           )}
         </section>
 
-        {/* Send Message */}
         <section className="pub-section pub-msg-section">
           <h2 className="pub-section-title">💌 Kirim Pesan Ucapan</h2>
           <div className="pub-msg-form card">
@@ -194,7 +223,6 @@ export default function PublicWishlist() {
         </section>
       </div>
 
-      {/* Claim Modal */}
       {claimTarget && (
         <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setClaimTarget(null)}>
           <div className="modal slide-up">

@@ -1,7 +1,39 @@
 /* Navbar extra styles - base in index.css */
 .navbar-logo:hover { opacity: .85; }
 
+/* ── Message button with badge ── */
+.navbar-msg-btn {
+  position: relative;
+}
+
+.navbar-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--rose);
+  color: var(--white);
+  font-size: 0.65rem;
+  font-weight: 700;
+  min-width: 17px;
+  height: 17px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border: 2px solid var(--cream);
+  line-height: 1;
+  animation: popIn .2s ease;
+}
+
+@keyframes popIn {
+  from { transform: scale(0); }
+  to   { transform: scale(1); }
+}
+
 @media (max-width: 600px) {
   .navbar-logo { font-size: 1rem; }
   .navbar-actions .btn-ghost { display: none; }
+  /* Tapi tetap tampilkan tombol Pesan dan Keluar di mobile */
+  .navbar-msg-btn { display: inline-flex !important; }
 }

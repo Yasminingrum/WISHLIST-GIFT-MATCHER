@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import WishlistDetail from "./pages/WishlistDetail";
 import Profile from "./pages/Profile";
 import PublicWishlist from "./pages/PublicWishlist";
+import Messages from "./pages/Messages";
 
 export default function App() {
   return (
@@ -34,6 +35,9 @@ export default function App() {
           } />
           <Route path="/profile" element={
             <ProtectedRoute><Profile /></ProtectedRoute>
+          } />
+          <Route path="/messages" element={
+            <ProtectedRoute><Messages /></ProtectedRoute>
           } />
 
           {/* 404 */}
