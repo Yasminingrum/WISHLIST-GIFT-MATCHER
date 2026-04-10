@@ -103,13 +103,16 @@
 
 .message-card {
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .msg-header {
   display: flex;
   align-items: flex-start;
   gap: 14px;
-  margin-bottom: 12px;
+  margin-bottom: 4px;
 }
 
 .msg-avatar {
@@ -132,6 +135,11 @@
   gap: 2px;
 }
 
+.msg-email {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
 .msg-wishlist {
   font-size: 0.8rem;
   color: var(--rose);
@@ -149,6 +157,45 @@
   font-size: 0.95rem;
   padding-left: 54px;
   line-height: 1.6;
+}
+
+/* ── Reply Box ── */
+.msg-reply-box {
+  margin-top: 4px;
+  margin-left: 54px;
+  padding: 12px 16px;
+  background: var(--rose-pale);
+  border-radius: var(--r-sm);
+  border-left: 3px solid var(--rose);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.msg-reply-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--rose);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.msg-reply-content {
+  font-size: 0.92rem;
+  color: var(--ink-mid);
+  line-height: 1.5;
+}
+
+.msg-reply-form {
+  margin-top: 6px;
+  margin-left: 54px;
+  display: flex;
+  flex-direction: column;
+}
+
+.msg-reply-form textarea {
+  font-size: 0.9rem;
+  min-height: 70px;
 }
 
 /* ── Stats ── */
@@ -203,4 +250,6 @@
 @media (max-width: 600px) {
   .profile-form { padding: 20px; }
   .msg-content { padding-left: 0; }
+  .msg-reply-box { margin-left: 0; }
+  .msg-reply-form { margin-left: 0; }
 }

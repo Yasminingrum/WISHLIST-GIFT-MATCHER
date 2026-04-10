@@ -57,6 +57,58 @@
 }
 .auth-footer a:hover { text-decoration: underline; }
 
+/* ── Google Button ── */
+.btn-google {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 20px;
+  background: var(--white);
+  border: 1.5px solid #DADCE0;
+  border-radius: var(--r-md);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--ink);
+  cursor: pointer;
+  transition: all .2s ease;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+
+.btn-google:hover {
+  background: #F8F9FA;
+  border-color: #BBBFC4;
+  box-shadow: 0 2px 8px rgba(0,0,0,.10);
+  transform: translateY(-1px);
+}
+
+.btn-google:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── Divider ── */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(232,112,122,.2);
+}
+
 @media (max-width: 480px) {
   .auth-card { padding: 28px 20px; }
 }

@@ -9,23 +9,35 @@ export default function Dashboard() {
   const { currentUser } = useAuth();
   const [wishlists, setWishlists] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
 
   async function load() {
     setLoading(true);
-    const data = await getWishlistsByOwner(currentUser.uid);
-    data.sort((a, b) => b.createdAt - a.createdAt);
-    setWishlists(data);
-    setLoading(false);
+    setError("");
+    try {
+      const data = await getWishlistsByOwner(currentUser.uid);
+      data.sort((a, b) => b.createdAt - a.createdAt);
+      setWishlists(data);
+    } catch (err) {
+      console.error("Gagal load wishlist:", err);
+      setError("Gagal memuat wishlist. Periksa koneksi dan coba lagi.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => { load(); }, []);
 
   async function handleDelete(id) {
     if (!confirm("Hapus wishlist ini beserta semua item-nya?")) return;
-    await deleteWishlist(id);
-    load();
+    try {
+      await deleteWishlist(id);
+      load();
+    } catch (err) {
+      alert("Gagal menghapus wishlist. Coba lagi.");
+    }
   }
 
   function handleEdit(wl) {
@@ -52,6 +64,18 @@ export default function Dashboard() {
           + Buat Wishlist
         </button>
       </div>
+
+      {error && (
+        <div className="alert alert-error" style={{ marginBottom: 24 }}>
+          {error}
+          <button
+            onClick={load}
+            style={{ marginLeft: 12, fontWeight: 600, textDecoration: "underline", background: "none", border: "none", cursor: "pointer", color: "inherit" }}
+          >
+            Coba lagi
+          </button>
+        </div>
+      )}
 
       {loading ? (
         <div className="loading-page"><div className="spinner" /></div>

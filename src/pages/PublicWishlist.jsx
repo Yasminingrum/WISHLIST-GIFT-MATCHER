@@ -17,12 +17,14 @@ export default function PublicWishlist() {
   // Claim modal state
   const [claimTarget, setClaimTarget] = useState(null);
   const [claimerName, setClaimerName] = useState("");
+  const [claimerEmail, setClaimerEmail] = useState("");
   const [claiming, setClaiming] = useState(false);
   const [claimError, setClaimError] = useState("");
   const [claimSuccess, setClaimSuccess] = useState("");
 
   // Message form state
   const [msgName, setMsgName] = useState("");
+  const [msgEmail, setMsgEmail] = useState("");
   const [msgContent, setMsgContent] = useState("");
   const [sendingMsg, setSendingMsg] = useState(false);
   const [msgSuccess, setMsgSuccess] = useState("");
@@ -37,7 +39,6 @@ export default function PublicWishlist() {
       setWishlist(wl);
       setLoading(false);
     });
-
     const unsubItems = listenItems(id, setItems);
     const unsubMsgs = listenMessages(id, setMessages);
     return () => { unsubItems(); unsubMsgs(); };
@@ -46,13 +47,15 @@ export default function PublicWishlist() {
   async function handleClaim(e) {
     e.preventDefault();
     if (!claimerName.trim()) return setClaimError("Masukkan namamu.");
+    if (!claimerEmail.trim()) return setClaimError("Masukkan emailmu.");
     setClaiming(true);
     setClaimError("");
     try {
-      await claimItem(claimTarget.id, claimerName.trim());
+      await claimItem(claimTarget.id, claimerName.trim(), claimerEmail.trim());
       setClaimSuccess(`Kamu berhasil mengklaim "${claimTarget.name}"! 🎉`);
       setClaimTarget(null);
       setClaimerName("");
+      setClaimerEmail("");
     } catch (err) {
       setClaimError(err.message || "Gagal mengklaim. Coba lagi.");
     }
@@ -61,11 +64,12 @@ export default function PublicWishlist() {
 
   async function handleSendMessage(e) {
     e.preventDefault();
-    if (!msgName.trim() || !msgContent.trim()) return;
+    if (!msgName.trim() || !msgEmail.trim() || !msgContent.trim()) return;
     setSendingMsg(true);
     try {
-      await createMessage(id, msgName.trim(), msgContent.trim());
+      await createMessage(id, msgName.trim(), msgEmail.trim(), msgContent.trim());
       setMsgName("");
+      setMsgEmail("");
       setMsgContent("");
       setMsgSuccess("Pesan ucapan terkirim! 💌");
       setTimeout(() => setMsgSuccess(""), 3000);
@@ -96,12 +100,8 @@ export default function PublicWishlist() {
         <div className="container">
           <p className="public-eyebrow">✨ Wishlist Hadiah</p>
           <h1 className="public-title">{wishlist.title}</h1>
-          {wishlist.eventDate && (
-            <p className="public-date">📅 {wishlist.eventDate}</p>
-          )}
-          {wishlist.description && (
-            <p className="public-desc">{wishlist.description}</p>
-          )}
+          {wishlist.eventDate && <p className="public-date">📅 {wishlist.eventDate}</p>}
+          {wishlist.description && <p className="public-desc">{wishlist.description}</p>}
           <div className="public-stats">
             <div className="pub-stat">
               <span className="pub-stat-num">{items.length}</span>
@@ -126,10 +126,9 @@ export default function PublicWishlist() {
           <div className="alert alert-success" style={{ marginTop: 24 }}>{claimSuccess}</div>
         )}
 
-        {/* Items available */}
+        {/* Items */}
         <section className="pub-section">
           <h2 className="pub-section-title">🎁 Daftar Hadiah</h2>
-
           {items.length === 0 ? (
             <div className="empty-state">
               <div className="empty-icon">🛍️</div>
@@ -146,27 +145,19 @@ export default function PublicWishlist() {
                       {PRIORITY_LABEL[item.priority]}
                     </span>
                   </div>
-
                   {item.price > 0 && (
-                    <p className="pub-item-price">
-                      ≈ Rp {Number(item.price).toLocaleString("id-ID")}
-                    </p>
+                    <p className="pub-item-price">≈ Rp {Number(item.price).toLocaleString("id-ID")}</p>
                   )}
-
                   {item.shopUrl && !item.isClaimed && (
                     <a href={item.shopUrl} target="_blank" rel="noreferrer" className="pub-shop-link">
                       🛒 Lihat di Toko
                     </a>
                   )}
-
                   <div className="pub-item-footer">
                     {item.isClaimed ? (
                       <span className="pub-claimed-badge">✓ Sudah Diklaim</span>
                     ) : (
-                      <button
-                        className="btn btn-primary btn-sm"
-                        onClick={() => { setClaimTarget(item); setClaimError(""); }}
-                      >
+                      <button className="btn btn-primary btn-sm" onClick={() => { setClaimTarget(item); setClaimError(""); }}>
                         Klaim Hadiah Ini
                       </button>
                     )}
@@ -184,23 +175,16 @@ export default function PublicWishlist() {
             {msgSuccess && <div className="alert alert-success">{msgSuccess}</div>}
             <form onSubmit={handleSendMessage}>
               <div className="form-group">
-                <label>Namamu</label>
-                <input
-                  placeholder="Masukkan namamu"
-                  value={msgName}
-                  onChange={(e) => setMsgName(e.target.value)}
-                  required
-                />
+                <label>Namamu *</label>
+                <input placeholder="Masukkan namamu" value={msgName} onChange={(e) => setMsgName(e.target.value)} required />
               </div>
               <div className="form-group">
-                <label>Pesan Ucapan</label>
-                <textarea
-                  placeholder="Tulis ucapan spesialmu di sini…"
-                  value={msgContent}
-                  onChange={(e) => setMsgContent(e.target.value)}
-                  rows={4}
-                  required
-                />
+                <label>Emailmu *</label>
+                <input type="email" placeholder="email@contoh.com" value={msgEmail} onChange={(e) => setMsgEmail(e.target.value)} required />
+              </div>
+              <div className="form-group">
+                <label>Pesan Ucapan *</label>
+                <textarea placeholder="Tulis ucapan spesialmu di sini…" value={msgContent} onChange={(e) => setMsgContent(e.target.value)} rows={4} required />
               </div>
               <button type="submit" className="btn btn-primary" disabled={sendingMsg}>
                 {sendingMsg ? "Mengirim…" : "Kirim Pesan 💌"}
@@ -224,22 +208,18 @@ export default function PublicWishlist() {
             {claimError && <div className="alert alert-error">{claimError}</div>}
             <form onSubmit={handleClaim}>
               <div className="form-group">
-                <label>Namamu</label>
-                <input
-                  placeholder="Masukkan namamu"
-                  value={claimerName}
-                  onChange={(e) => setClaimerName(e.target.value)}
-                  required
-                  autoFocus
-                />
+                <label>Namamu *</label>
+                <input placeholder="Masukkan namamu" value={claimerName} onChange={(e) => setClaimerName(e.target.value)} required autoFocus />
+              </div>
+              <div className="form-group">
+                <label>Emailmu *</label>
+                <input type="email" placeholder="email@contoh.com" value={claimerEmail} onChange={(e) => setClaimerEmail(e.target.value)} required />
               </div>
               <p className="claim-note">
-                💡 Nama ini tidak akan ditampilkan kepada pemilik wishlist — kejutan tetap terjaga!
+                💡 Nama dan emailmu tidak ditampilkan ke pemilik wishlist — kejutan tetap terjaga! Email hanya untuk konfirmasi klaim.
               </p>
               <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
-                <button type="button" className="btn btn-secondary" onClick={() => setClaimTarget(null)}>
-                  Batal
-                </button>
+                <button type="button" className="btn btn-secondary" onClick={() => setClaimTarget(null)}>Batal</button>
                 <button type="submit" className="btn btn-primary" disabled={claiming}>
                   {claiming ? "Mengklaim…" : "Konfirmasi Klaim 🎁"}
                 </button>

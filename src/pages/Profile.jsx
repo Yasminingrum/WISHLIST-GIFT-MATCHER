@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
-import { getUserProfile, updateUserProfile, getWishlistsByOwner, listenMessages, deleteMessage } from "../utils/db";
+import { getUserProfile, updateUserProfile, getWishlistsByOwner, listenMessages, deleteMessage, replyMessage } from "../utils/db";
 import "./Profile.css";
 
 export default function Profile() {
@@ -10,27 +10,41 @@ export default function Profile() {
   const [wishlists, setWishlists] = useState([]);
   const [allMessages, setAllMessages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
 
+  // Reply state
+  const [replyingId, setReplyingId] = useState(null);
+  const [replyText, setReplyText] = useState("");
+  const [sendingReply, setSendingReply] = useState(false);
+
   useEffect(() => {
     async function load() {
-      const p = await getUserProfile(currentUser.uid);
-      const wls = await getWishlistsByOwner(currentUser.uid);
-      setProfile(p);
-      setWishlists(wls);
-      setForm({
-        displayName: p?.displayName || currentUser.displayName || "",
-        bio: p?.bio || "",
-        photoURL: p?.photoURL || "",
-      });
-      setLoading(false);
+      setLoadError("");
+      try {
+        const [p, wls] = await Promise.all([
+          getUserProfile(currentUser.uid),
+          getWishlistsByOwner(currentUser.uid),
+        ]);
+        setProfile(p);
+        setWishlists(wls);
+        setForm({
+          displayName: p?.displayName || currentUser.displayName || "",
+          bio: p?.bio || "",
+          photoURL: p?.photoURL || "",
+        });
+      } catch (err) {
+        console.error("Gagal load profil:", err);
+        setLoadError("Gagal memuat data. Periksa koneksi dan coba lagi.");
+      } finally {
+        setLoading(false);
+      }
     }
     load();
   }, [currentUser]);
 
-  // Listen to messages from all wishlists
   useEffect(() => {
     if (wishlists.length === 0) return;
     const unsubs = wishlists.map((wl) =>
@@ -63,9 +77,27 @@ export default function Profile() {
     setAllMessages((prev) => prev.filter((m) => m.id !== msgId));
   }
 
-  const totalClaimed = wishlists.reduce((acc, wl) => acc, 0);
+  async function handleReply(msgId) {
+    if (!replyText.trim()) return;
+    setSendingReply(true);
+    try {
+      await replyMessage(msgId, replyText.trim());
+      setReplyingId(null);
+      setReplyText("");
+    } catch {
+      alert("Gagal mengirim balasan.");
+    }
+    setSendingReply(false);
+  }
 
   if (loading) return <div className="loading-page"><div className="spinner" /></div>;
+
+  if (loadError) return (
+    <div className="container fade-in">
+      <div className="page-header"><h1>Profil Saya</h1></div>
+      <div className="alert alert-error">{loadError}</div>
+    </div>
+  );
 
   return (
     <div className="container fade-in">
@@ -76,25 +108,14 @@ export default function Profile() {
 
       {/* Tabs */}
       <div className="profile-tabs">
-        <button
-          className={`profile-tab ${activeTab === "profile" ? "active" : ""}`}
-          onClick={() => setActiveTab("profile")}
-        >
+        <button className={`profile-tab ${activeTab === "profile" ? "active" : ""}`} onClick={() => setActiveTab("profile")}>
           👤 Profil
         </button>
-        <button
-          className={`profile-tab ${activeTab === "messages" ? "active" : ""}`}
-          onClick={() => setActiveTab("messages")}
-        >
+        <button className={`profile-tab ${activeTab === "messages" ? "active" : ""}`} onClick={() => setActiveTab("messages")}>
           💌 Pesan Ucapan
-          {allMessages.length > 0 && (
-            <span className="tab-badge">{allMessages.length}</span>
-          )}
+          {allMessages.length > 0 && <span className="tab-badge">{allMessages.length}</span>}
         </button>
-        <button
-          className={`profile-tab ${activeTab === "stats" ? "active" : ""}`}
-          onClick={() => setActiveTab("stats")}
-        >
+        <button className={`profile-tab ${activeTab === "stats" ? "active" : ""}`} onClick={() => setActiveTab("stats")}>
           📊 Statistik
         </button>
       </div>
@@ -125,30 +146,15 @@ export default function Profile() {
             <form onSubmit={handleSave}>
               <div className="form-group">
                 <label>Nama Tampilan</label>
-                <input
-                  value={form.displayName}
-                  onChange={(e) => setForm((f) => ({ ...f, displayName: e.target.value }))}
-                  placeholder="Nama lengkapmu"
-                  required
-                />
+                <input value={form.displayName} onChange={(e) => setForm((f) => ({ ...f, displayName: e.target.value }))} placeholder="Nama lengkapmu" required />
               </div>
               <div className="form-group">
                 <label>URL Foto Profil</label>
-                <input
-                  value={form.photoURL}
-                  onChange={(e) => setForm((f) => ({ ...f, photoURL: e.target.value }))}
-                  placeholder="https://..."
-                  type="url"
-                />
+                <input value={form.photoURL} onChange={(e) => setForm((f) => ({ ...f, photoURL: e.target.value }))} placeholder="https://..." type="url" />
               </div>
               <div className="form-group">
                 <label>Bio</label>
-                <textarea
-                  value={form.bio}
-                  onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))}
-                  placeholder="Ceritakan sedikit tentang dirimu…"
-                  rows={3}
-                />
+                <textarea value={form.bio} onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))} placeholder="Ceritakan sedikit tentang dirimu…" rows={3} />
               </div>
               <button type="submit" className="btn btn-primary" disabled={saving}>
                 {saving ? "Menyimpan…" : "Simpan Perubahan"}
@@ -172,27 +178,83 @@ export default function Profile() {
             <div className="messages-list">
               {allMessages.map((msg) => {
                 const wl = wishlists.find((w) => w.id === msg.wishlistId);
+                const isReplying = replyingId === msg.id;
                 return (
                   <div key={msg.id} className="message-card card">
                     <div className="msg-header">
                       <div className="msg-avatar">{msg.senderName[0]?.toUpperCase()}</div>
                       <div className="msg-meta">
                         <strong>{msg.senderName}</strong>
+                        {msg.senderEmail && (
+                          <span className="msg-email">📧 {msg.senderEmail}</span>
+                        )}
                         {wl && <span className="msg-wishlist">untuk wishlist: {wl.title}</span>}
                         <span className="msg-time">
-                          {new Date(msg.createdAt).toLocaleDateString("id-ID", {
-                            day: "numeric", month: "long", year: "numeric"
-                          })}
+                          {new Date(msg.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
                         </span>
                       </div>
-                      <button
-                        className="btn btn-danger btn-sm"
-                        onClick={() => handleDeleteMessage(msg.id)}
-                      >
+                      <button className="btn btn-danger btn-sm" onClick={() => handleDeleteMessage(msg.id)}>
                         Hapus
                       </button>
                     </div>
+
+                    {/* Pesan asli */}
                     <p className="msg-content">"{msg.content}"</p>
+
+                    {/* Balasan yang sudah ada */}
+                    {msg.reply && (
+                      <div className="msg-reply-box">
+                        <span className="msg-reply-label">💬 Balasanmu:</span>
+                        <p className="msg-reply-content">{msg.reply}</p>
+                        {!isReplying && (
+                          <button
+                            className="btn btn-ghost btn-sm"
+                            style={{ marginTop: 6 }}
+                            onClick={() => { setReplyingId(msg.id); setReplyText(msg.reply); }}
+                          >
+                            ✏️ Edit Balasan
+                          </button>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Form balas */}
+                    {isReplying ? (
+                      <div className="msg-reply-form">
+                        <textarea
+                          value={replyText}
+                          onChange={(e) => setReplyText(e.target.value)}
+                          placeholder="Tulis balasanmu…"
+                          rows={2}
+                          autoFocus
+                        />
+                        <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                          <button
+                            className="btn btn-primary btn-sm"
+                            onClick={() => handleReply(msg.id)}
+                            disabled={sendingReply || !replyText.trim()}
+                          >
+                            {sendingReply ? "Mengirim…" : "Kirim Balasan"}
+                          </button>
+                          <button
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => { setReplyingId(null); setReplyText(""); }}
+                          >
+                            Batal
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      !msg.reply && (
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          style={{ alignSelf: "flex-start", marginTop: 4 }}
+                          onClick={() => { setReplyingId(msg.id); setReplyText(""); }}
+                        >
+                          💬 Balas Pesan
+                        </button>
+                      )
+                    )}
                   </div>
                 );
               })}
@@ -221,7 +283,6 @@ export default function Profile() {
               <div className="stat-desc">Pesan Masuk</div>
             </div>
           </div>
-
           {wishlists.length > 0 && (
             <div style={{ marginTop: 32 }}>
               <h3 style={{ marginBottom: 16 }}>Daftar Wishlistmu</h3>

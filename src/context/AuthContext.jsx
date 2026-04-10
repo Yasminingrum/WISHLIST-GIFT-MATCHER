@@ -6,6 +6,8 @@ import {
   sendEmailVerification,
   onAuthStateChanged,
   updateProfile,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from "firebase/auth";
 import { ref, set, get, update } from "firebase/database";
 import { auth, db } from "../firebase";
@@ -39,6 +41,26 @@ export function AuthProvider({ children }) {
     return signInWithEmailAndPassword(auth, email, password);
   }
 
+  async function loginWithGoogle() {
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+
+    // Cek apakah user sudah ada di database
+    const snap = await get(ref(db, "users/" + user.uid));
+    if (!snap.exists()) {
+      // User baru via Google — simpan ke database
+      await set(ref(db, "users/" + user.uid), {
+        displayName: user.displayName || "",
+        email: user.email,
+        photoURL: user.photoURL || "",
+        bio: "",
+        createdAt: Date.now(),
+      });
+    }
+    return result;
+  }
+
   async function logout() {
     return signOut(auth);
   }
@@ -67,6 +89,7 @@ export function AuthProvider({ children }) {
     currentUser,
     register,
     login,
+    loginWithGoogle,
     logout,
     updateUserProfile,
     getUserProfile,
