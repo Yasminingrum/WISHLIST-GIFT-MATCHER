@@ -48,10 +48,3 @@ Website akan live di: `https://[nama-project].web.app`
 
 ## 🔄 CI/CD dengan GitHub Actions
 Push ke GitHub → GitHub Actions otomatis menjalankan `firebase deploy`
-
-## 🏗️ Struktur
-- `src/firebase.js` — ⚠️ EDIT INI DULU
-- `src/utils/db.js` — 12 fungsi CRUD
-- `src/context/AuthContext.jsx` — state auth global
-- `src/pages/` — semua halaman
-- `src/components/` — komponen reusable
