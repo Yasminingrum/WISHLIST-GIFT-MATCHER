@@ -1,0 +1,206 @@
+.profile-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 2px solid rgba(232,112,122,.15);
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.profile-tab {
+  position: relative;
+  padding: 12px 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all .2s;
+}
+
+.profile-tab:hover { color: var(--rose); }
+
+.profile-tab.active {
+  color: var(--rose);
+  border-bottom-color: var(--rose);
+}
+
+.tab-badge {
+  background: var(--rose);
+  color: var(--white);
+  font-size: 0.7rem;
+  font-weight: 700;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-content {
+  padding-bottom: 48px;
+}
+
+.profile-avatar-section {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.profile-avatar {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--rose-pale), var(--rose-light));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  color: var(--rose);
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 3px solid var(--white);
+  box-shadow: var(--shadow-md);
+}
+
+.profile-avatar img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+
+.profile-name {
+  font-size: 1.5rem;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+
+.profile-email {
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}
+
+.profile-form {
+  max-width: 560px;
+  padding: 32px;
+}
+
+/* ── Messages ── */
+.messages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 700px;
+}
+
+.message-card {
+  padding: 20px;
+}
+
+.msg-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.msg-avatar {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--rose-pale), var(--rose-light));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: var(--rose);
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.msg-meta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.msg-wishlist {
+  font-size: 0.8rem;
+  color: var(--rose);
+  font-style: italic;
+}
+
+.msg-time {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+.msg-content {
+  font-style: italic;
+  color: var(--ink-mid);
+  font-size: 0.95rem;
+  padding-left: 54px;
+  line-height: 1.6;
+}
+
+/* ── Stats ── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.stat-card {
+  padding: 28px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.stat-icon { font-size: 2rem; }
+
+.stat-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--rose);
+}
+
+.stat-desc {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+
+.stats-wl-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stats-wl-row {
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.9rem;
+  color: var(--ink-mid);
+}
+
+.stats-wl-row strong { color: var(--ink); }
+
+@media (max-width: 600px) {
+  .profile-form { padding: 20px; }
+  .msg-content { padding-left: 0; }
+}

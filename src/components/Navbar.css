@@ -1,0 +1,7 @@
+/* Navbar extra styles - base in index.css */
+.navbar-logo:hover { opacity: .85; }
+
+@media (max-width: 600px) {
+  .navbar-logo { font-size: 1rem; }
+  .navbar-actions .btn-ghost { display: none; }
+}
