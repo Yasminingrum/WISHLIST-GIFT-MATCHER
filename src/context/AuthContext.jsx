@@ -38,7 +38,14 @@ export function AuthProvider({ children }) {
   }
 
   async function login(email, password) {
-    return signInWithEmailAndPassword(auth, email, password);
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    // Sync email ke database (untuk akun lama yang belum punya field email)
+    const uid = result.user.uid;
+    const snap = await get(ref(db, "users/" + uid));
+    if (snap.exists() && !snap.val().email) {
+      await update(ref(db, "users/" + uid), { email });
+    }
+    return result;
   }
 
   async function loginWithGoogle() {
@@ -66,7 +73,9 @@ export function AuthProvider({ children }) {
   }
 
   async function updateUserProfile(uid, data) {
-    await update(ref(db, "users/" + uid), data);
+    // Selalu sertakan email agar tidak hilang dari database
+    const email = auth.currentUser?.email || "";
+    await update(ref(db, "users/" + uid), { ...data, email });
     if (data.displayName) {
       await updateProfile(auth.currentUser, { displayName: data.displayName });
     }

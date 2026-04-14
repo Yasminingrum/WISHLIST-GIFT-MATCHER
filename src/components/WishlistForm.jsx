@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createWishlist, updateWishlist } from "../utils/db";
 
-export default function WishlistForm({ existing, onClose, uid }) {
+export default function WishlistForm({ existing, onClose, uid, ownerEmail }) {
   const [form, setForm] = useState({
     title: existing?.title || "",
     eventDate: existing?.eventDate || "",
@@ -25,7 +25,7 @@ export default function WishlistForm({ existing, onClose, uid }) {
       if (existing) {
         await updateWishlist(existing.id, form);
       } else {
-        await createWishlist(uid, form);
+        await createWishlist(uid, { ...form, ownerEmail: ownerEmail || '' });
       }
       onClose();
     } catch {

@@ -27,6 +27,7 @@ export async function deleteUserData(uid) {
 export async function createWishlist(uid, data) {
   const wishlistData = {
     ownerId: uid,
+    ownerEmail: data.ownerEmail || "",
     title: data.title,
     eventDate: data.eventDate || "",
     description: data.description || "",
@@ -148,8 +149,18 @@ export async function createMessage(wishlistId, senderName, senderEmail, content
     content,
     reply: null,
     repliedAt: null,
+    isRead: false,
     createdAt: Date.now(),
   });
+}
+
+// MARK AS READ — tandai pesan sebagai sudah dibaca (batch update)
+export async function markMessagesAsRead(messageIds) {
+  const updates = {};
+  messageIds.forEach((id) => {
+    updates[`messages/${id}/isRead`] = true;
+  });
+  return update(ref(db, "/"), updates);
 }
  
 // READ - realtime listener

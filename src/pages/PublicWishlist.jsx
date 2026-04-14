@@ -66,8 +66,19 @@ export default function PublicWishlist() {
       await claimItem(claimTarget.id, claimerName.trim(), claimerEmail.trim());
 
       // Kirim email notifikasi (tidak blocking — berjalan di background)
-      const ownerEmail = ownerProfile?.email || "";
-      const ownerName = ownerProfile?.displayName || "Pemilik Wishlist";
+      // Prioritas: ownerEmail dari node wishlist → profil owner → fallback fetch
+      let ownerEmail = wishlist.ownerEmail || ownerProfile?.email || "";
+      let ownerName  = ownerProfile?.displayName || "Pemilik Wishlist";
+
+      if (!ownerEmail) {
+        try {
+          const fresh = await getUserProfile(wishlist.ownerId);
+          ownerEmail = fresh?.email || "";
+          ownerName  = fresh?.displayName || ownerName;
+        } catch (_) {}
+      }
+
+      console.log("[Claim] ownerEmail:", ownerEmail);
 
       sendClaimNotifToOwner({
         ownerEmail,

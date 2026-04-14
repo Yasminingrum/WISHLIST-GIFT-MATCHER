@@ -1,30 +1,79 @@
-/* Messages page reuses styles from Profile.css for message cards */
-/* These are the shared styles, scoped here for the standalone page */
-
 .messages-list {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
   max-width: 700px;
   padding-bottom: 48px;
 }
 
-.message-card {
-  padding: 20px;
+/* ── Toolbar (pilih semua + hapus terpilih) ── */
+.msg-toolbar {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  align-items: center;
+  gap: 12px;
+  max-width: 700px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: var(--surface);
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
 }
 
+.msg-check-all {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--ink-mid);
+  user-select: none;
+}
+
+.msg-check-all input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--rose);
+}
+
+/* ── Card ── */
+.message-card {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: box-shadow 0.15s;
+  cursor: pointer;
+}
+
+.message-card.selected {
+  border-color: var(--rose-light);
+  background: var(--rose-pale);
+}
+
+.message-card.expanded {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+
+/* ── Header (selalu tampil) ── */
 .msg-header {
   display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  margin-bottom: 4px;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  user-select: none;
+}
+
+.msg-checkbox {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  cursor: pointer;
+  accent-color: var(--rose);
 }
 
 .msg-avatar {
-  width: 40px; height: 40px;
+  width: 38px; height: 38px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--rose-pale), var(--rose-light));
   display: flex;
@@ -32,7 +81,7 @@
   justify-content: center;
   font-weight: 700;
   color: var(--rose);
-  font-size: 1rem;
+  font-size: 0.95rem;
   flex-shrink: 0;
 }
 
@@ -40,37 +89,81 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
+  min-width: 0;
+}
+
+.msg-meta strong {
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .msg-email {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   color: var(--ink-soft);
 }
 
 .msg-wishlist {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--rose);
   font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .msg-time {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   color: var(--ink-soft);
+}
+
+/* ── Aksi pojok kanan ── */
+.msg-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.msg-replied-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #2e7d52;
+  background: #d4f5e2;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.msg-chevron {
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+  padding: 0 2px;
+}
+
+/* ── Body (expand) ── */
+.msg-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 16px 16px 16px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
 }
 
 .msg-content {
   font-style: italic;
   color: var(--ink-mid);
   font-size: 0.95rem;
-  padding-left: 54px;
   line-height: 1.6;
+  padding-left: 50px;
 }
 
 .msg-reply-box {
-  margin-top: 4px;
-  margin-left: 54px;
-  padding: 12px 16px;
+  margin-left: 50px;
+  padding: 10px 14px;
   background: var(--rose-pale);
   border-radius: var(--r-sm);
   border-left: 3px solid var(--rose);
@@ -80,7 +173,7 @@
 }
 
 .msg-reply-label {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
   color: var(--rose);
   text-transform: uppercase;
@@ -88,14 +181,13 @@
 }
 
 .msg-reply-content {
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   color: var(--ink-mid);
   line-height: 1.5;
 }
 
 .msg-reply-form {
-  margin-top: 6px;
-  margin-left: 54px;
+  margin-left: 50px;
   display: flex;
   flex-direction: column;
 }
@@ -109,4 +201,5 @@
   .msg-content { padding-left: 0; }
   .msg-reply-box { margin-left: 0; }
   .msg-reply-form { margin-left: 0; }
+  .msg-replied-badge { display: none; }
 }

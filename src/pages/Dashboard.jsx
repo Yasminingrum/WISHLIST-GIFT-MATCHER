@@ -139,6 +139,7 @@ export default function Dashboard() {
           existing={editTarget}
           onClose={handleFormClose}
           uid={currentUser.uid}
+          ownerEmail={currentUser.email}
         />
       )}
     </div>

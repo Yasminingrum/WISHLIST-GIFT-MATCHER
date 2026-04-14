@@ -16,7 +16,7 @@ export default function Navbar() {
       const counts = {};
       unsubs = wls.map((wl) =>
         listenMessages(wl.id, (msgs) => {
-          counts[wl.id] = msgs.length;
+          counts[wl.id] = msgs.filter((m) => !m.isRead).length;
           setMsgCount(Object.values(counts).reduce((a, b) => a + b, 0));
         })
       );
