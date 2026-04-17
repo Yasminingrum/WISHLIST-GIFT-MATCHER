@@ -1,10 +1,21 @@
 import { useState } from "react";
 import { createItem, updateItem } from "../utils/db";
 
+// Format angka dengan titik sebagai pemisah ribuan (format Indonesia)
+function formatPrice(value) {
+  const num = value.replace(/\./g, "").replace(/\D/g, "");
+  if (!num) return "";
+  return Number(num).toLocaleString("id-ID");
+}
+
+function parsePrice(formatted) {
+  return Number(formatted.replace(/\./g, "")) || 0;
+}
+
 export default function ItemForm({ existing, wishlistId, onClose }) {
   const [form, setForm] = useState({
     name: existing?.name || "",
-    price: existing?.price || "",
+    priceDisplay: existing?.price ? Number(existing.price).toLocaleString("id-ID") : "",
     shopUrl: existing?.shopUrl || "",
     priority: existing?.priority || "medium",
   });
@@ -12,7 +23,12 @@ export default function ItemForm({ existing, wishlistId, onClose }) {
   const [error, setError] = useState("");
 
   function handleChange(e) {
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    if (name === "priceDisplay") {
+      setForm((f) => ({ ...f, priceDisplay: formatPrice(value) }));
+    } else {
+      setForm((f) => ({ ...f, [name]: value }));
+    }
   }
 
   async function handleSubmit(e) {
@@ -21,17 +37,20 @@ export default function ItemForm({ existing, wishlistId, onClose }) {
     setLoading(true);
     setError("");
     try {
+      const price = parsePrice(form.priceDisplay);
       if (existing) {
         await updateItem(existing.id, {
           name: form.name,
-          price: Number(form.price) || 0,
+          price,
           shopUrl: form.shopUrl,
           priority: form.priority,
         });
       } else {
         await createItem(wishlistId, {
-          ...form,
-          price: Number(form.price) || 0,
+          name: form.name,
+          price,
+          shopUrl: form.shopUrl,
+          priority: form.priority,
         });
       }
       onClose();
@@ -67,14 +86,29 @@ export default function ItemForm({ existing, wishlistId, onClose }) {
 
           <div className="form-group">
             <label>Estimasi Harga (Rp)</label>
-            <input
-              name="price"
-              type="number"
-              placeholder="0"
-              min="0"
-              value={form.price}
-              onChange={handleChange}
-            />
+            <div style={{ position: "relative" }}>
+              <span style={{
+                position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)",
+                color: "var(--ink-soft)", fontSize: "0.9rem", pointerEvents: "none",
+                userSelect: "none",
+              }}>
+                Rp
+              </span>
+              <input
+                name="priceDisplay"
+                type="text"
+                inputMode="numeric"
+                placeholder="0"
+                value={form.priceDisplay}
+                onChange={handleChange}
+                style={{ paddingLeft: 38 }}
+              />
+            </div>
+            {form.priceDisplay && (
+              <p style={{ fontSize: "0.78rem", color: "var(--ink-soft)", marginTop: 4 }}>
+                Nilai: Rp {form.priceDisplay}
+              </p>
+            )}
           </div>
 
           <div className="form-group">

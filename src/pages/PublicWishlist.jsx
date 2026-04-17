@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { getWishlist, listenItems, claimItem, createMessage, listenMessages } from "../utils/db";
+import { getWishlist, listenItems, claimItem, createMessage, listenMessages, getUserProfile } from "../utils/db";
 import { sendClaimNotifToOwner, sendClaimConfirmToClaimer } from "../utils/emailService";
 import "./PublicWishlist.css";
 
@@ -40,9 +40,8 @@ export default function PublicWishlist() {
       }
       setWishlist(wl);
 
-      // Ambil profil owner untuk dapat email-nya
+      // Ambil profil owner untuk fallback nama
       try {
-        const { getUserProfile } = await import("../utils/db");
         const profile = await getUserProfile(wl.ownerId);
         setOwnerProfile(profile);
       } catch (_) {}
@@ -52,9 +51,21 @@ export default function PublicWishlist() {
     init();
 
     const unsubItems = listenItems(id, setItems);
-    const unsubMsgs = listenMessages(id, () => {}); // keep listener aktif
+    const unsubMsgs = listenMessages(id, () => {});
     return () => { unsubItems(); unsubMsgs(); };
   }, [id]);
+
+  /**
+   * Resolusi nama owner dengan prioritas:
+   * 1. wishlist.ownerName  → disimpan saat createWishlist (paling andal)
+   * 2. ownerProfile.displayName → dari Realtime DB /users/{uid}
+   * 3. String fallback minimal
+   */
+  function resolveOwnerName(wl, profile) {
+    return wl?.ownerName?.trim()
+      || profile?.displayName?.trim()
+      || "";
+  }
 
   async function handleClaim(e) {
     e.preventDefault();
@@ -65,24 +76,24 @@ export default function PublicWishlist() {
     try {
       await claimItem(claimTarget.id, claimerName.trim(), claimerEmail.trim());
 
-      // Kirim email notifikasi (tidak blocking — berjalan di background)
-      // Prioritas: ownerEmail dari node wishlist → profil owner → fallback fetch
       let ownerEmail = wishlist.ownerEmail || ownerProfile?.email || "";
-      let ownerName  = ownerProfile?.displayName || "Pemilik Wishlist";
+      // Gunakan resolveOwnerName — tidak ada hardcoded fallback "Pemilik Wishlist"
+      let ownerName = resolveOwnerName(wishlist, ownerProfile);
 
-      if (!ownerEmail) {
+      // Kalau masih kosong, coba fetch ulang profil secara fresh
+      if (!ownerName || !ownerEmail) {
         try {
           const fresh = await getUserProfile(wishlist.ownerId);
-          ownerEmail = fresh?.email || "";
-          ownerName  = fresh?.displayName || ownerName;
+          if (!ownerEmail) ownerEmail = fresh?.email || "";
+          if (!ownerName) ownerName = fresh?.displayName?.trim() || "";
         } catch (_) {}
       }
 
-      console.log("[Claim] ownerEmail:", ownerEmail);
+      console.log("[Claim] ownerEmail:", ownerEmail, "ownerName:", ownerName);
 
       sendClaimNotifToOwner({
         ownerEmail,
-        ownerName,
+        ownerName: ownerName || "Pemilik Wishlist",
         claimerName: claimerName.trim(),
         itemName: claimTarget.name,
         wishlistTitle: wishlist.title,
@@ -93,6 +104,7 @@ export default function PublicWishlist() {
         claimerName: claimerName.trim(),
         itemName: claimTarget.name,
         wishlistTitle: wishlist.title,
+        ownerName: ownerName || "Pemilik Wishlist",
       });
 
       setClaimSuccess(`Kamu berhasil mengklaim "${claimTarget.name}"! 🎉 Cek emailmu untuk konfirmasi.`);
@@ -134,6 +146,7 @@ export default function PublicWishlist() {
 
   const available = items.filter((i) => !i.isClaimed);
   const claimed = items.filter((i) => i.isClaimed);
+  const ownerName = resolveOwnerName(wishlist, ownerProfile);
 
   return (
     <div className="public-page">
@@ -142,8 +155,17 @@ export default function PublicWishlist() {
         <div className="container">
           <p className="public-eyebrow">✨ Wishlist Hadiah</p>
           <h1 className="public-title">{wishlist.title}</h1>
+
+          {ownerName && (
+            <p className="public-owner">
+              <span className="public-owner-label">oleh</span>
+              <span className="public-owner-name">🎀 {ownerName}</span>
+            </p>
+          )}
+
           {wishlist.eventDate && <p className="public-date">📅 {wishlist.eventDate}</p>}
           {wishlist.description && <p className="public-desc">{wishlist.description}</p>}
+
           <div className="public-stats">
             <div className="pub-stat">
               <span className="pub-stat-num">{items.length}</span>
@@ -210,7 +232,10 @@ export default function PublicWishlist() {
         </section>
 
         <section className="pub-section pub-msg-section">
-          <h2 className="pub-section-title">💌 Kirim Pesan Ucapan</h2>
+          <h2 className="pub-section-title">
+            💌 Kirim Pesan Ucapan
+            {ownerName && <span className="pub-msg-for"> untuk {ownerName}</span>}
+          </h2>
           <div className="pub-msg-form card">
             {msgSuccess && <div className="alert alert-success">{msgSuccess}</div>}
             <form onSubmit={handleSendMessage}>
@@ -224,7 +249,13 @@ export default function PublicWishlist() {
               </div>
               <div className="form-group">
                 <label>Pesan Ucapan *</label>
-                <textarea placeholder="Tulis ucapan spesialmu di sini…" value={msgContent} onChange={(e) => setMsgContent(e.target.value)} rows={4} required />
+                <textarea
+                  placeholder={ownerName ? `Tulis ucapan spesialmu untuk ${ownerName} di sini…` : "Tulis ucapan spesialmu di sini…"}
+                  value={msgContent}
+                  onChange={(e) => setMsgContent(e.target.value)}
+                  rows={4}
+                  required
+                />
               </div>
               <button type="submit" className="btn btn-primary" disabled={sendingMsg}>
                 {sendingMsg ? "Mengirim…" : "Kirim Pesan 💌"}
@@ -241,6 +272,17 @@ export default function PublicWishlist() {
               <h2 className="modal-title">Klaim Hadiah</h2>
               <button className="modal-close" onClick={() => setClaimTarget(null)}>✕</button>
             </div>
+
+            <div className="claim-event-info">
+              <div className="claim-event-icon">🎁</div>
+              <div>
+                <p className="claim-event-title">{wishlist.title}</p>
+                {ownerName && (
+                  <p className="claim-event-owner">Wishlist milik <strong>{ownerName}</strong></p>
+                )}
+              </div>
+            </div>
+
             <p style={{ color: "var(--ink-mid)", marginBottom: 20 }}>
               Kamu akan mengklaim: <strong>{claimTarget.name}</strong>
             </p>

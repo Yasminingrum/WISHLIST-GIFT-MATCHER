@@ -4,6 +4,8 @@ import { useAuth } from "../context/AuthContext";
 import { getWishlistsByOwner, deleteWishlist } from "../utils/db";
 import WishlistForm from "../components/WishlistForm";
 import "./Dashboard.css";
+import { ref, onValue } from "firebase/database";
+import { db } from "../firebase";
 
 export default function Dashboard() {
   const { currentUser } = useAuth();
@@ -12,6 +14,7 @@ export default function Dashboard() {
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
+  const [dbDisplayName, setDbDisplayName] = useState("");
 
   async function load() {
     setLoading(true);
@@ -30,12 +33,29 @@ export default function Dashboard() {
 
   useEffect(() => { load(); }, []);
 
+  // Real-time listener untuk nama dari DB — langsung update tanpa perlu navigasi ulang
+  useEffect(() => {
+    if (!currentUser?.uid) return;
+    const userRef = ref(db, "users/" + currentUser.uid);
+    console.log("Listening to path:", "users/" + currentUser.uid); // debug
+    const unsub = onValue(userRef, (snap) => {
+      console.log("onValue fired, data:", snap.val()); // debug
+      if (snap.exists()) {
+        const name = snap.val()?.displayName?.trim() || currentUser.displayName?.trim() || "";
+        setDbDisplayName(name);
+      }
+    }, (error) => {
+      console.error("onValue error:", error); // tangkap error permission
+    });
+    return () => unsub();
+  }, [currentUser?.uid]);
+
   async function handleDelete(id) {
     if (!confirm("Hapus wishlist ini beserta semua item-nya?")) return;
     try {
       await deleteWishlist(id);
       load();
-    } catch (err) {
+    } catch {
       alert("Gagal menghapus wishlist. Coba lagi.");
     }
   }
@@ -51,7 +71,7 @@ export default function Dashboard() {
     load();
   }
 
-  const greeting = currentUser?.displayName?.split(" ")[0] || "Kamu";
+  const greeting = dbDisplayName || "Kamu";
 
   return (
     <div className="container fade-in">
@@ -84,8 +104,7 @@ export default function Dashboard() {
           <div className="empty-icon">🎁</div>
           <h3>Belum ada wishlist</h3>
           <p>Mulai buat wishlist pertamamu!</p>
-          <button className="btn btn-primary" style={{ marginTop: 20 }}
-            onClick={() => setShowForm(true)}>
+          <button className="btn btn-primary" style={{ marginTop: 20 }} onClick={() => setShowForm(true)}>
             Buat Sekarang
           </button>
         </div>
@@ -140,6 +159,7 @@ export default function Dashboard() {
           onClose={handleFormClose}
           uid={currentUser.uid}
           ownerEmail={currentUser.email}
+          ownerName={dbDisplayName}
         />
       )}
     </div>

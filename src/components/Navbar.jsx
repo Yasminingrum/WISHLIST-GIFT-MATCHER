@@ -1,11 +1,13 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import { useEffect, useState } from "react";
 import { getWishlistsByOwner, listenMessages } from "../utils/db";
 import "./Navbar.css";
 
 export default function Navbar() {
   const { currentUser, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [msgCount, setMsgCount] = useState(0);
 
@@ -29,6 +31,8 @@ export default function Navbar() {
     navigate("/login");
   }
 
+  const isDark = theme === "dark";
+
   return (
     <nav className="navbar">
       <div className="navbar-inner">
@@ -36,6 +40,17 @@ export default function Navbar() {
           🎁 <span>Wishlist</span> & Gift Matcher
         </Link>
         <div className="navbar-actions">
+          {/* Theme Toggle */}
+          <button
+            className="theme-toggle"
+            onClick={toggleTheme}
+            title={isDark ? "Ganti ke tema terang" : "Ganti ke tema gelap"}
+            aria-label="Toggle tema"
+          >
+            {isDark ? "☀️" : "🌙"}
+            <span className="theme-label">{isDark ? "Terang" : "Gelap"}</span>
+          </button>
+
           {currentUser ? (
             <>
               <Link to="/dashboard" className="btn btn-ghost btn-sm">Dashboard</Link>

@@ -112,3 +112,33 @@
 @media (max-width: 480px) {
   .auth-card { padding: 28px 20px; }
 }
+
+/* ── Verify Email: polling indicator ── */
+.verify-polling-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--mint-pale);
+  color: var(--mint);
+  border: 1px solid rgba(127,191,176,.3);
+  border-radius: 20px;
+  padding: 8px 18px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.verify-pulse {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--mint);
+  display: inline-block;
+  animation: pulse-ring 1.5s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulse-ring {
+  0%   { opacity: 1; transform: scale(1); }
+  50%  { opacity: 0.4; transform: scale(1.4); }
+  100% { opacity: 1; transform: scale(1); }
+}

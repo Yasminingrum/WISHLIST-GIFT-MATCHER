@@ -8,8 +8,11 @@ import {
   updateProfile,
   GoogleAuthProvider,
   signInWithPopup,
+  deleteUser,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
 } from "firebase/auth";
-import { ref, set, get, update } from "firebase/database";
+import { ref, set, get, update, remove } from "firebase/database";
 import { auth, db } from "../firebase";
 
 const AuthContext = createContext();
@@ -17,6 +20,17 @@ const AuthContext = createContext();
 export function useAuth() {
   return useContext(AuthContext);
 }
+
+export const AUTH_ERROR = {
+  GOOGLE_USER_NOT_REGISTERED: "auth/google-user-not-registered",
+};
+
+const ACTION_CODE_SETTINGS = {
+  url: import.meta.env.VITE_APP_URL
+    ? `${import.meta.env.VITE_APP_URL}/login`
+    : `${window.location.origin}/login`,
+  handleCodeInApp: false,
+};
 
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
@@ -26,7 +40,7 @@ export function AuthProvider({ children }) {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
     await updateProfile(user, { displayName });
-    await sendEmailVerification(user);
+    await sendEmailVerification(user, ACTION_CODE_SETTINGS);
     await set(ref(db, "users/" + user.uid), {
       displayName,
       email,
@@ -39,7 +53,6 @@ export function AuthProvider({ children }) {
 
   async function login(email, password) {
     const result = await signInWithEmailAndPassword(auth, email, password);
-    // Sync email ke database (untuk akun lama yang belum punya field email)
     const uid = result.user.uid;
     const snap = await get(ref(db, "users/" + uid));
     if (snap.exists() && !snap.val().email) {
@@ -52,11 +65,22 @@ export function AuthProvider({ children }) {
     const provider = new GoogleAuthProvider();
     const result = await signInWithPopup(auth, provider);
     const user = result.user;
-
-    // Cek apakah user sudah ada di database
     const snap = await get(ref(db, "users/" + user.uid));
     if (!snap.exists()) {
-      // User baru via Google — simpan ke database
+      await signOut(auth);
+      const err = new Error("Akun Google belum terdaftar. Silakan daftar terlebih dahulu.");
+      err.code = AUTH_ERROR.GOOGLE_USER_NOT_REGISTERED;
+      throw err;
+    }
+    return result;
+  }
+
+  async function registerWithGoogle() {
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+    const snap = await get(ref(db, "users/" + user.uid));
+    if (!snap.exists()) {
       await set(ref(db, "users/" + user.uid), {
         displayName: user.displayName || "",
         email: user.email,
@@ -72,18 +96,54 @@ export function AuthProvider({ children }) {
     return signOut(auth);
   }
 
+  /**
+   * Update profil: simpan ke Firebase Realtime DB + update Firebase Auth displayName/photoURL.
+   * Setelah berhasil, paksa refresh currentUser state agar Dashboard langsung update.
+   */
   async function updateUserProfile(uid, data) {
-    // Selalu sertakan email agar tidak hilang dari database
     const email = auth.currentUser?.email || "";
+    // 1. Simpan ke Realtime Database
     await update(ref(db, "users/" + uid), { ...data, email });
-    if (data.displayName) {
-      await updateProfile(auth.currentUser, { displayName: data.displayName });
+    // 2. Update Firebase Auth profile (displayName & photoURL)
+    const authUpdates = {};
+    if (data.displayName !== undefined) authUpdates.displayName = data.displayName;
+    if (data.photoURL !== undefined) authUpdates.photoURL = data.photoURL;
+    if (Object.keys(authUpdates).length > 0) {
+      await updateProfile(auth.currentUser, authUpdates);
     }
+    // 3. Refresh currentUser state — paksa React re-render dengan object baru
+    setCurrentUser({ ...auth.currentUser });
   }
 
   async function getUserProfile(uid) {
     const snap = await get(ref(db, "users/" + uid));
     return snap.exists() ? snap.val() : null;
+  }
+
+  async function resendVerificationEmail() {
+    if (!auth.currentUser) return;
+    await sendEmailVerification(auth.currentUser, ACTION_CODE_SETTINGS);
+  }
+
+  /**
+   * Hapus akun: re-autentikasi dulu (keamanan Firebase), lalu hapus data DB, lalu hapus akun.
+   * @param {string} password - password akun (untuk re-auth). Null jika Google user.
+   */
+  async function deleteAccount(password) {
+    const user = auth.currentUser;
+    if (!user) throw new Error("Tidak ada sesi aktif.");
+
+    // Re-autentikasi (diperlukan Firebase untuk operasi sensitif)
+    if (password) {
+      const credential = EmailAuthProvider.credential(user.email, password);
+      await reauthenticateWithCredential(user, credential);
+    }
+
+    const uid = user.uid;
+    // Hapus data user dari Realtime Database
+    await remove(ref(db, "users/" + uid));
+    // Hapus akun dari Firebase Auth
+    await deleteUser(user);
   }
 
   useEffect(() => {
@@ -99,9 +159,12 @@ export function AuthProvider({ children }) {
     register,
     login,
     loginWithGoogle,
+    registerWithGoogle,
     logout,
     updateUserProfile,
     getUserProfile,
+    resendVerificationEmail,
+    deleteAccount,
   };
 
   return (

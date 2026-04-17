@@ -247,9 +247,203 @@
 
 .stats-wl-row strong { color: var(--ink); }
 
+/* ── Guide Tab ── */
+.guide-section {
+  max-width: 760px;
+}
+
+.guide-title {
+  font-size: 1.4rem;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.guide-subtitle {
+  color: var(--ink-soft);
+  margin-bottom: 28px;
+  font-size: 0.95rem;
+}
+
+.guide-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.guide-card {
+  padding: 20px 24px;
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.guide-step {
+  min-width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--rose), var(--rose-light));
+  color: var(--white);
+  font-weight: 700;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(232,112,122,.3);
+}
+
+.guide-card-body h4 {
+  font-size: 1rem;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.guide-card-body p {
+  font-size: 0.9rem;
+  color: var(--ink-mid);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.guide-tips {
+  padding: 24px;
+}
+
+.guide-tips h4 {
+  font-size: 1rem;
+  color: var(--ink);
+  margin-bottom: 12px;
+}
+
+.guide-tips ul {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.guide-tips li {
+  font-size: 0.9rem;
+  color: var(--ink-mid);
+  line-height: 1.5;
+}
+
+/* ── Settings Tab ── */
+.settings-section {
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.settings-card {
+  padding: 24px 28px;
+}
+
+.settings-card h4 {
+  font-size: 1rem;
+  color: var(--ink);
+  margin-bottom: 14px;
+}
+
+.settings-desc {
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
+.settings-info-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(0,0,0,.05);
+  font-size: 0.9rem;
+}
+
+.settings-info-row:last-child {
+  border-bottom: none;
+}
+
+.settings-label {
+  min-width: 120px;
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+
+.settings-value {
+  color: var(--ink);
+}
+
+.settings-danger-zone {
+  border: 1.5px solid rgba(220, 38, 38, 0.2);
+  background: rgba(220, 38, 38, 0.02);
+}
+
+.settings-danger-zone h4 {
+  color: #dc2626;
+}
+
+.btn-danger {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: var(--r-sm);
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background .2s;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.btn-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--ink-mid);
+  border: 1.5px solid rgba(0,0,0,.15);
+  padding: 10px 20px;
+  border-radius: var(--r-sm);
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all .2s;
+}
+
+.btn-outline:hover {
+  border-color: var(--rose);
+  color: var(--rose);
+}
+
+.delete-confirm-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.delete-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 @media (max-width: 600px) {
   .profile-form { padding: 20px; }
   .msg-content { padding-left: 0; }
   .msg-reply-box { margin-left: 0; }
   .msg-reply-form { margin-left: 0; }
+  .guide-card { flex-direction: column; gap: 12px; }
+  .settings-card { padding: 20px; }
+  .settings-info-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .settings-label { min-width: unset; }
 }

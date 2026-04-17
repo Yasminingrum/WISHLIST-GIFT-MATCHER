@@ -8,6 +8,7 @@
   position: relative;
   overflow: hidden;
   text-align: center;
+  transition: background 0.3s ease;
 }
 
 .public-hero-deco {
@@ -30,7 +31,31 @@
 .public-title {
   font-size: 2.8rem;
   color: var(--ink);
+  margin-bottom: 10px;
+}
+
+/* ── Owner name display ── */
+.public-owner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   margin-bottom: 12px;
+  font-size: 1rem;
+  color: var(--ink-mid);
+}
+
+.public-owner-label {
+  font-style: italic;
+  opacity: 0.75;
+}
+
+.public-owner-name {
+  font-weight: 600;
+  color: var(--rose);
+  background: var(--rose-pale);
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 0.95rem;
 }
 
 .public-date {
@@ -49,12 +74,12 @@
 .public-stats {
   display: inline-flex;
   align-items: center;
-  gap: 0;
-  background: var(--white);
+  background: var(--card-bg);
   border-radius: var(--r-xl);
   padding: 16px 32px;
   box-shadow: var(--shadow-md);
   gap: 24px;
+  transition: background 0.3s ease;
 }
 
 .pub-stat {
@@ -81,7 +106,7 @@
 .pub-stat-divider {
   width: 1px;
   height: 40px;
-  background: rgba(232,112,122,.2);
+  background: var(--border);
 }
 
 /* ── Sections ── */
@@ -90,13 +115,25 @@
 }
 
 .pub-section + .pub-section {
-  border-top: 1px solid rgba(232,112,122,.1);
+  border-top: 1px solid var(--border);
 }
 
 .pub-section-title {
   font-size: 1.6rem;
   color: var(--ink);
   margin-bottom: 24px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pub-msg-for {
+  font-size: 1rem;
+  font-style: italic;
+  color: var(--ink-soft);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 400;
 }
 
 /* ── Items grid ── */
@@ -148,7 +185,7 @@
 .pub-item-footer {
   margin-top: auto;
   padding-top: 12px;
-  border-top: 1px solid rgba(232,112,122,.1);
+  border-top: 1px solid var(--border);
 }
 
 .pub-claimed-badge {
@@ -171,6 +208,40 @@
 .pub-msg-form {
   max-width: 600px;
   padding: 32px;
+}
+
+/* ── Claim modal event info ── */
+.claim-event-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--blush);
+  border-radius: var(--r-md);
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+}
+
+.claim-event-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.claim-event-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+
+.claim-event-owner {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.claim-event-owner strong {
+  color: var(--rose);
 }
 
 .claim-note {
@@ -200,9 +271,29 @@
   margin-bottom: 12px;
 }
 
+/* ── Loading page ── */
+.loading-page {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--blush);
+  border-top-color: var(--rose);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
 @media (max-width: 768px) {
   .public-title { font-size: 1.9rem; }
   .public-stats { gap: 16px; padding: 14px 20px; }
   .pub-items-grid { grid-template-columns: 1fr; }
   .pub-msg-form { padding: 20px; }
+  .pub-section-title { font-size: 1.3rem; }
 }
