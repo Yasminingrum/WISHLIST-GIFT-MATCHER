@@ -42,7 +42,6 @@ export async function sendClaimNotifToOwner({
       wishlist_title: wishlistTitle,
     }, "notif ke owner");
   } catch {
-    // Sudah di-log di sendEmail; jangan crash app
   }
 }
 
@@ -66,7 +65,6 @@ export async function sendClaimConfirmToClaimer({
       owner_name:     ownerName || "Pemilik Wishlist",
     }, "konfirmasi ke claimer");
   } catch {
-    // Sudah di-log di sendEmail; jangan crash app
   }
 }
 
@@ -87,6 +85,5 @@ export async function sendReplyNotif({
       reply_content:  replyContent,
     }, "notif balasan ke sender");
   } catch {
-    // Sudah di-log di sendEmail; jangan crash app
   }
 }
